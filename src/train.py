@@ -1,5 +1,4 @@
 import joblib
-import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -19,6 +18,7 @@ from src.config import (
 )
 from src.evaluate import evaluate_model
 from src.logger import setup_logger
+from src.validation import validate_model, cross_validate_model, tune_model
 
 logger = setup_logger()
 
@@ -49,7 +49,7 @@ def split_data(x, y):
         y,
         test_size=0.2,
         stratify=y,
-        random_state=RANDOM_STATE
+        random_state=RANDOM_STATE,
     )
 
 
@@ -68,7 +68,10 @@ def build_model():
         hidden_layer_sizes=(32, 16),
         activation="relu",
         solver="adam",
-        max_iter=1000,
+        max_iter=1500,
+        early_stopping=True,
+        validation_fraction=0.1,
+        n_iter_no_change=20,
         random_state=RANDOM_STATE,
     )
     return model
@@ -91,24 +94,62 @@ def train_and_save_model(df):
     x_train, x_test, y_train, y_test = split_data(x, y)
 
     preprocessor = build_preprocessor()
-    model = build_model()
 
-    pipeline = Pipeline([
+    # Baseline model
+    baseline_model = build_model()
+
+    baseline_pipeline = Pipeline([
         ("preprocessor", preprocessor),
-        ("classifier", model),
+        ("classifier", baseline_model),
     ])
 
-    pipeline.fit(x_train, y_train)
-    logger.info("Neural network model trained successfully.")
+    baseline_pipeline.fit(x_train, y_train)
+    logger.info("Baseline neural network model trained successfully.")
+
+    baseline_train_acc, baseline_test_acc = evaluate_model(
+        baseline_pipeline, x_train, y_train, x_test, y_test
+    )
+
+    logger.info(f"Baseline Train Accuracy: {baseline_train_acc:.4f}")
+    logger.info(f"Baseline Test Accuracy: {baseline_test_acc:.4f}")
+
+    # Hyperparameter tuning
+    tuned_pipeline, best_params, best_cv_score = tune_model(
+        preprocessor=preprocessor,
+        x_train=x_train,
+        y_train=y_train,
+        random_state=RANDOM_STATE,
+    )
+
+    logger.info(f"Best Parameters: {best_params}")
+    logger.info(f"Best CV Score from GridSearch: {best_cv_score:.4f}")
 
     train_acc, test_acc = evaluate_model(
-        pipeline, x_train, y_train, x_test, y_test
+        tuned_pipeline, x_train, y_train, x_test, y_test
     )
+
+    validation_results = validate_model(tuned_pipeline, x_test, y_test)
+    cv_results = cross_validate_model(tuned_pipeline, x, y, cv=5)
+
+    logger.info(f"Tuned Train Accuracy: {train_acc:.4f}")
+    logger.info(f"Tuned Test Accuracy: {test_acc:.4f}")
+    logger.info(f"Validation Results: {validation_results}")
+    logger.info(f"Cross-Validation Results: {cv_results}")
 
     save_artifacts(
-        pipeline,
+        tuned_pipeline,
         preprocessor,
-        x.columns.tolist()
+        x.columns.tolist(),
     )
 
-    return pipeline, train_acc, test_acc
+    return (
+        tuned_pipeline,
+        train_acc,
+        test_acc,
+        validation_results,
+        cv_results,
+        best_params,
+        best_cv_score,
+        baseline_train_acc,
+        baseline_test_acc,
+    )
