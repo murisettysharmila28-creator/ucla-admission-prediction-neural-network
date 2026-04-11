@@ -69,8 +69,8 @@ This separation ensures clean pipelines and production-level structure.
 ## Modelling Approach
 
 ### Preprocessing
-- StandardScaler → Numeric features
-- OneHotEncoder → Categorical features
+- StandardScaler - Numeric features
+- OneHotEncoder - Categorical features
 - Target transformation:
 ```
 Admit_Chance ≥ 0.8 → 1
@@ -190,6 +190,7 @@ python -m streamlit run app.py
 
 ---
 
-## References
-- Scikit-learn Documentation: https://scikit-learn.org/
-- Streamlit Documentation: https://docs.streamlit.io/
+## Author
+
+Sharmila Murisetty  
+Data Analyst / Business Intelligence Developer
