@@ -1,5 +1,9 @@
 import streamlit as st
+
 from src.predict import predict_admission
+from src.logger import setup_logger
+
+logger = setup_logger()
 
 st.set_page_config(page_title="UCLA Admission Prediction App", layout="centered")
 
@@ -23,34 +27,39 @@ research = st.selectbox(
 )
 
 if st.button("Predict Admission Outcome"):
-    input_data = {
-        "GRE_Score": gre_score,
-        "TOEFL_Score": toefl_score,
-        "University_Rating": university_rating,
-        "SOP": sop,
-        "LOR": lor,
-        "CGPA": cgpa,
-        "Research": research,
-    }
+    try:
+        input_data = {
+            "GRE_Score": gre_score,
+            "TOEFL_Score": toefl_score,
+            "University_Rating": university_rating,
+            "SOP": sop,
+            "LOR": lor,
+            "CGPA": cgpa,
+            "Research": research,
+        }
 
-    prediction, probability = predict_admission(input_data)
+        prediction, probability = predict_admission(input_data)
 
-    st.markdown("### Prediction Result")
+        st.markdown("### Prediction Result")
 
-    if prediction == 1:
-        st.success("Likely to Have a Strong Admission Chance")
-    else:
-        st.error("Unlikely to Have a Strong Admission Chance")
+        if prediction == 1:
+            st.success("Likely to Have a Strong Admission Chance")
+        else:
+            st.error("Unlikely to Have a Strong Admission Chance")
 
-    st.markdown(
-        f"**Model-estimated probability of being in the high-admission-chance group:** {probability:.2%}"
-    )
+        st.markdown(
+            f"**Model-estimated probability of being in the high-admission-chance group:** {probability:.2%}"
+        )
 
-    st.markdown("### Interpretation")
+        st.markdown("### Interpretation")
 
-    if probability >= 0.8:
-        st.write("This profile shows a high likelihood of being in the strong admission chance group.")
-    elif probability >= 0.6:
-        st.write("This profile has a moderate outlook, but stronger academic or research indicators may improve the result.")
-    else:
-        st.write("This profile may need stronger academic or research credentials to improve the likelihood of being in the strong admission chance group.")
+        if probability >= 0.8:
+            st.write("This profile shows a high likelihood of being in the strong admission chance group.")
+        elif probability >= 0.6:
+            st.write("This profile has a moderate outlook, but stronger academic or research indicators may improve the result.")
+        else:
+            st.write("This profile may need stronger academic or research credentials to improve the likelihood of being in the strong admission chance group.")
+
+    except Exception as e:
+        logger.error(f"Error occurred in UCLA Streamlit app: {e}", exc_info=True)
+        st.error(f"An error occurred: {e}")
