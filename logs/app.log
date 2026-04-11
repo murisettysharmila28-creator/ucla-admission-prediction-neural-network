@@ -1,0 +1,17 @@
+2026-04-11 15:59:55,969 - INFO - admission_logger - Dataset loaded successfully. Shape: (500, 9)
+2026-04-11 15:59:56,048 - INFO - admission_logger - Baseline neural network model trained successfully.
+2026-04-11 15:59:56,048 - INFO - admission_logger - Train Accuracy: 0.9050
+2026-04-11 15:59:56,048 - INFO - admission_logger - Test Accuracy: 0.8200
+2026-04-11 15:59:56,048 - INFO - admission_logger - Baseline Train Accuracy: 0.9050
+2026-04-11 15:59:56,048 - INFO - admission_logger - Baseline Test Accuracy: 0.8200
+2026-04-11 16:00:02,598 - INFO - admission_logger - Best Parameters: {'classifier__activation': 'tanh', 'classifier__alpha': 0.0001, 'classifier__early_stopping': True, 'classifier__hidden_layer_sizes': (64, 32), 'classifier__learning_rate_init': 0.01, 'classifier__max_iter': 1000, 'classifier__solver': 'adam'}
+2026-04-11 16:00:02,613 - INFO - admission_logger - Best CV Score from GridSearch: 0.9225
+2026-04-11 16:00:02,615 - INFO - admission_logger - Train Accuracy: 0.9425
+2026-04-11 16:00:02,615 - INFO - admission_logger - Test Accuracy: 0.9000
+2026-04-11 16:00:02,847 - INFO - admission_logger - Tuned Train Accuracy: 0.9425
+2026-04-11 16:00:02,847 - INFO - admission_logger - Tuned Test Accuracy: 0.9000
+2026-04-11 16:00:02,847 - INFO - admission_logger - Validation Results: {'accuracy': 0.9, 'precision': 0.8, 'recall': 0.9032, 'f1_score': 0.8485, 'confusion_matrix': [[62, 7], [3, 28]], 'classification_report': '              precision    recall  f1-score   support\n\n           0       0.95      0.90      0.93        69\n           1       0.80      0.90      0.85        31\n\n    accuracy                           0.90       100\n   macro avg       0.88      0.90      0.89       100\nweighted avg       0.91      0.90      0.90       100\n'}
+2026-04-11 16:00:02,863 - INFO - admission_logger - Cross-Validation Results: {'cv_scores': [0.94, 0.86, 0.92, 0.92, 0.92], 'cv_mean_accuracy': 0.912, 'cv_std_accuracy': 0.0271}
+2026-04-11 16:00:02,872 - INFO - admission_logger - Model saved at: C:\Sharmila\Machine Learning\Projects\ucla-admission-prediction-neural-network\model\admission_model.pkl
+2026-04-11 16:00:02,872 - INFO - admission_logger - Preprocessor saved at: C:\Sharmila\Machine Learning\Projects\ucla-admission-prediction-neural-network\model\preprocessor.pkl
+2026-04-11 16:00:02,872 - INFO - admission_logger - Feature columns saved at: C:\Sharmila\Machine Learning\Projects\ucla-admission-prediction-neural-network\model\feature_columns.pkl

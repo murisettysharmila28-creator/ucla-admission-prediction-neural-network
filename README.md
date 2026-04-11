@@ -1,148 +1,26 @@
-# UCLA Admission Prediction using Neural Network
+# UCLA Admission Prediction using Neural Networks
 
-## Live App
-
-https://ucla-admission-prediction-neural-network-sharmila.streamlit.app/
-
----
-
-## Overview
-
-This project demonstrates an end-to-end machine learning pipeline for predicting whether an applicant is likely to have a strong admission chance using a neural network model.
-
-The solution includes:
-- data preprocessing
-- target transformation
-- baseline model training
-- hyperparameter tuning using GridSearchCV
-- model evaluation and validation
-- deployment as an interactive Streamlit web application
-
-The original admission probability target was converted into a binary classification problem, where applicants with an admission chance of 0.8 or higher are treated as having a strong admission chance.
+## Project Overview
+This project predicts whether a student has a **high chance of admission (≥ 0.8)** to UCLA using a **Neural Network (MLPClassifier)**.  
+The solution was originally developed in a notebook and then transformed into a **modular, production-ready machine learning application** with proper validation, logging, and deployment using Streamlit.
 
 ---
 
 ## Problem Statement
+The goal is to classify applicants into:
+- **1 → High chance of admission (≥ 0.8)**
+- **0 → Lower chance of admission (< 0.8)**
 
-Graduate admission datasets often provide a probability-like admission score rather than a direct class label. This project reformulates the problem into a binary classification task to determine whether a candidate is likely to belong to the high-admission-chance group.
-
-The goal is to use academic and profile-related features to predict whether an applicant is likely to have a strong admission chance.
-
----
-
-## Dataset
-
-- Dataset: Admission.csv
-- Target column: Admit_Chance
-
-### Target Transformation
-- 1 if Admit_Chance >= 0.8
-- 0 otherwise
-
-### Features Used
-
-- GRE_Score
-- TOEFL_Score
-- University_Rating
-- SOP
-- LOR
-- CGPA
-- Research
-
-### Dropped Column
-
-- Serial_No
-
----
-
-## Approach
-
-### 1. Data Preparation
-- Removed the Serial_No column
-- Converted the original admission score into a binary target
-- Treated University_Rating as a categorical feature
-- Scaled numeric features using StandardScaler
-- Applied one-hot encoding using OneHotEncoder
-
-### 2. Baseline Model
-- Algorithm: MLPClassifier
-- Hidden layers: (32, 16)
-- Activation: relu
-- Early stopping enabled
-
-### Baseline Results
-- Train Accuracy: 0.9050
-- Test Accuracy: 0.8200
-
-### 3. Hyperparameter Tuning
-- Used GridSearchCV with 5-fold cross-validation
-- Tuned:
-  - hidden layer sizes
-  - activation function
-  - regularization (alpha)
-  - learning rate
-  - max iterations
-
-### Best Hyperparameters
-{
- 'activation': 'tanh',
- 'alpha': 0.0001,
- 'hidden_layer_sizes': (64, 32),
- 'learning_rate_init': 0.01,
- 'max_iter': 1000,
- 'early_stopping': True,
- 'solver': 'adam'
-}
-
-### 4. Final Model Performance
-
-- Train Accuracy: 0.9425
-- Test Accuracy: 0.9000
-- Precision: 0.8000
-- Recall: 0.9032
-- F1 Score: 0.8485
-
-### Cross-Validation Results
-- Mean Accuracy: 0.9120
-- Standard Deviation: 0.0271
-
----
-
-## Model Interpretation
-
-The tuned model shows:
-- strong overall accuracy
-- balanced precision and recall
-- improved generalization compared to baseline
-
----
-
-## Application Features
-
-The Streamlit app allows users to:
-- input applicant profile details
-- predict admission likelihood
-- view prediction probability
-- understand results in simple terms
-
----
-
-## How the Prediction Works
-
-The model predicts whether an applicant belongs to the high-admission-chance group, not guaranteed admission.
-
-Output:
-- Likely to Have a Strong Admission Chance
-- Unlikely to Have a Strong Admission Chance
+This converts a regression problem into a **binary classification problem**.
 
 ---
 
 ## Project Structure
-
+```
 ucla-admission-prediction-neural-network/
 │
-├── app.py
-├── main.py
+├── app.py                      # Streamlit app
+├── main.py                     # Training pipeline entry point
 ├── requirements.txt
 ├── README.md
 │
@@ -154,90 +32,164 @@ ucla-admission-prediction-neural-network/
 │   ├── preprocessor.pkl
 │   └── feature_columns.pkl
 │
+├── logs/
+│   └── app.log                 # Logging output
+│
 ├── src/
-│   ├── __init__.py
 │   ├── config.py
+│   ├── custom_exception.py     # Custom error handling
+│   ├── logger.py               # Logging setup
 │   ├── data_loader.py
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── validation.py
-│   ├── predict.py
-│   └── logger.py
+│   └── predict.py
 │
 └── notebooks/
     └── UCLA_Neural_Networks_Solution.ipynb
+```
 
 ---
 
-## Installation
+## Code Modularization Approach
+The project follows a **modular architecture** to ensure reusability and maintainability:
 
-Clone the repository:
+- `data_loader.py` - Loads dataset with error handling
+- `train.py` - Handles preprocessing, training, tuning
+- `evaluate.py` - Computes accuracy metrics
+- `validation.py` - Cross-validation + detailed metrics
+- `predict.py` - Inference logic for Streamlit
+- `logger.py` - Centralized logging system
+- `custom_exception.py` - Structured error handling
 
-git clone https://github.com/murisettysharmila28-creator/ucla-admission-prediction-neural-network.git
-cd ucla-admission-prediction-neural-network
+This separation ensures clean pipelines and production-level structure.
 
-Create virtual environment:
+---
 
-python -m venv venv
-venv\Scripts\activate
+## Modelling Approach
 
-Install dependencies:
+### Preprocessing
+- StandardScaler → Numeric features
+- OneHotEncoder → Categorical features
+- Target transformation:
+```
+Admit_Chance ≥ 0.8 → 1
+Admit_Chance < 0.8 → 0
+```
 
+### Model Used
+- **MLPClassifier (Neural Network)**
+- Hidden layers: `(32, 16)`
+- Activation: `ReLU`
+- Early stopping enabled
+
+---
+
+## Training Results
+
+| Model Type        | Train Accuracy | Test Accuracy |
+|------------------|--------------|--------------|
+| Baseline Model   | ~92%         | ~82%         |
+| Tuned Model      | ~95%         | **90%**      |
+
+---
+
+## Validation Results
+
+### Hold-Out Validation
+- Test Accuracy: **90%**
+
+### Cross-Validation (5-Fold)
+- Mean Accuracy: **~91%**
+- Stable performance across folds
+
+### Detailed Metrics
+- Precision: ~0.80  
+- Recall: ~0.90  
+- F1 Score: ~0.85  
+
+Validation confirms that the tuned model **generalizes well and is not overfitting**.
+
+---
+
+## Interpretation
+- Neural network captures **non-linear relationships** between academic features.
+- Hyperparameter tuning significantly improved performance.
+- Cross-validation ensured **robust and reliable results**.
+- Model is suitable for **decision-support scenarios**, not real admissions.
+
+---
+
+## Streamlit App
+The model is deployed using Streamlit for interactive predictions.
+
+### Run the App
+```bash
 pip install -r requirements.txt
-
----
-
-## Run the Project
-
-Train the model:
-
 python main.py
-
-Run the Streamlit app:
-
 python -m streamlit run app.py
+```
+
+### Features
+- User inputs academic scores
+- Model predicts admission likelihood
+- Displays prediction + probability
 
 ---
 
-## Tech Stack
+## Logging & Error Handling
+- Logs stored in `logs/app.log`
+- Captures:
+  - dataset loading
+  - training progress
+  - evaluation metrics
+  - errors with stack trace
 
-- Python
-- Pandas
-- Scikit-learn
-- Streamlit
-- Joblib
+- Custom exception handling ensures:
+  - traceable errors
+  - robust execution
 
 ---
 
-## Key Learnings
-
-- Converting regression output into classification
-- Building modular ML pipelines
-- Feature scaling and encoding
-- Neural network model training
-- Hyperparameter tuning using GridSearchCV
-- Model evaluation using precision, recall, F1-score and cross-validation
-- Deploying ML apps using Streamlit
+## Key Findings
+- Neural networks can perform well on structured tabular data when tuned.
+- Validation is critical - single test split can be misleading.
+- Modular design improves scalability and deployment readiness.
 
 ---
 
 ## Limitations
-
-- Predicts probability group, not actual admission decision
-- Neural network probabilities may not be perfectly calibrated
-- Small dataset size
-
----
-
-## Future Improvements
-
-- Add probability calibration
-- Compare with Logistic Regression, Random Forest, XGBoost
-- Add explainability (SHAP)
-- Improve UI/UX
+- Dataset size is relatively small
+- Model may not generalize to real-world admissions
+- No external features (e.g., extracurriculars, essays)
 
 ---
 
-## Author
+## Challenges
+- Converting notebook into modular pipeline
+- Ensuring consistent preprocessing during inference
+- Handling overfitting in neural networks
+- Implementing proper validation
 
-Sharmila Murisetty - Data Analyst / BI Developer
+---
+
+## Learning Outcomes
+- Built end-to-end ML pipeline
+- Learned model validation techniques
+- Applied modular software design in ML
+- Implemented logging and error handling
+- Deployed ML app using Streamlit
+
+---
+
+## Future Enhancements
+- Add SHAP for model explainability
+- Deploy on cloud (Streamlit Cloud / AWS)
+- Improve feature engineering
+- Add real-time prediction API
+
+---
+
+## References
+- Scikit-learn Documentation: https://scikit-learn.org/
+- Streamlit Documentation: https://docs.streamlit.io/

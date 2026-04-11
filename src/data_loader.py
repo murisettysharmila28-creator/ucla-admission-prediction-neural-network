@@ -1,5 +1,8 @@
+import sys
 import pandas as pd
+
 from src.logger import setup_logger
+from src.custom_exception import CustomException
 
 logger = setup_logger()
 
@@ -9,9 +12,7 @@ def load_data(file_path):
         df = pd.read_csv(file_path)
         logger.info(f"Dataset loaded successfully. Shape: {df.shape}")
         return df
-    except FileNotFoundError:
-        logger.error(f"File not found: {file_path}")
-        raise
+
     except Exception as e:
-        logger.error(f"Unexpected error while loading data: {e}")
-        raise
+        logger.error(f"Failed to load dataset from {file_path}", exc_info=True)
+        raise CustomException(e, sys)

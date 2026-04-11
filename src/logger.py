@@ -1,18 +1,28 @@
 import logging
-import sys
+from pathlib import Path
+
+LOG_DIR = Path("logs")
+LOG_DIR.mkdir(exist_ok=True)
+
+LOG_FILE = LOG_DIR / "app.log"
 
 
-def setup_logger(name: str = "admission_logger") -> logging.Logger:
-    logger = logging.getLogger(name)
+def setup_logger():
+    logger = logging.getLogger("admission_logger")
+    logger.setLevel(logging.INFO)
 
     if not logger.handlers:
-        logger.setLevel(logging.INFO)
+        file_handler = logging.FileHandler(LOG_FILE)
+        stream_handler = logging.StreamHandler()
 
-        handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
             "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
         )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+
+        file_handler.setFormatter(formatter)
+        stream_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
+        logger.addHandler(stream_handler)
 
     return logger
