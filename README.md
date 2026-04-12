@@ -4,6 +4,15 @@
 This project predicts whether a student has a **high chance of admission (≥ 0.8)** to UCLA using a **Neural Network (MLPClassifier)**.  
 The solution was originally developed in a notebook and then transformed into a **modular, production-ready machine learning application** with proper validation, logging, and deployment using Streamlit.
 
+## Live Application
+
+The UCLA Admission Prediction app is deployed using Streamlit:
+
+**Live Application:**
+https://ucla-admission-prediction-neural-network-sharmila.streamlit.app/
+
+This application allows users to input academic and profile details such as GRE, TOEFL, CGPA, SOP, LOR, and research experience to predict the probability of admission using a neural network model.
+
 ---
 
 ## Problem Statement
