@@ -1,7 +1,7 @@
 import sys
 import joblib
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -19,7 +19,7 @@ from src.config import (
 )
 from src.evaluate import evaluate_model
 from src.logger import setup_logger
-from src.validation import validate_model, cross_validate_model, tune_model
+from src.validation import validate_model, cross_validate_model
 from src.custom_exception import CustomException
 
 logger = setup_logger()
@@ -48,10 +48,11 @@ def prepare_data(df):
         x = df[NUMERIC_FEATURES + CATEGORICAL_FEATURES]
         y = df[TARGET_COLUMN]
 
+        logger.info("UCLA data prepared successfully.")
         return x, y
 
     except Exception as e:
-        logger.error("Error occurred while preparing data.", exc_info=True)
+        logger.error("Error occurred while preparing UCLA data.", exc_info=True)
         raise CustomException(e, sys)
 
 
@@ -85,7 +86,7 @@ def build_preprocessor():
         raise CustomException(e, sys)
 
 
-def build_model():
+def build_baseline_pipeline(preprocessor):
     try:
         model = MLPClassifier(
             hidden_layer_sizes=(32, 16),
@@ -97,10 +98,59 @@ def build_model():
             n_iter_no_change=20,
             random_state=RANDOM_STATE,
         )
-        return model
+
+        pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("classifier", model),
+        ])
+
+        return pipeline
 
     except Exception as e:
-        logger.error("Error occurred while building baseline model.", exc_info=True)
+        logger.error("Error occurred while building baseline pipeline.", exc_info=True)
+        raise CustomException(e, sys)
+
+
+def tune_model(preprocessor, x_train, y_train):
+    try:
+        logger.info("Starting neural network hyperparameter tuning...")
+
+        pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("classifier", MLPClassifier(random_state=RANDOM_STATE)),
+        ])
+
+        param_grid = {
+            "classifier__hidden_layer_sizes": [(16,), (32, 16), (64, 32)],
+            "classifier__activation": ["relu", "tanh"],
+            "classifier__solver": ["adam"],
+            "classifier__alpha": [0.0001, 0.001, 0.01],
+            "classifier__learning_rate_init": [0.001, 0.01],
+            "classifier__max_iter": [1000, 1500],
+            "classifier__early_stopping": [True],
+        }
+
+        grid_search = GridSearchCV(
+            estimator=pipeline,
+            param_grid=param_grid,
+            cv=5,
+            scoring="accuracy",
+            n_jobs=-1,
+        )
+
+        grid_search.fit(x_train, y_train)
+
+        logger.info(f"Best Parameters: {grid_search.best_params_}")
+        logger.info(f"Best CV Score from GridSearch: {grid_search.best_score_:.4f}")
+
+        return (
+            grid_search.best_estimator_,
+            grid_search.best_params_,
+            round(float(grid_search.best_score_), 4),
+        )
+
+    except Exception as e:
+        logger.error("Error occurred during neural network tuning.", exc_info=True)
         raise CustomException(e, sys)
 
 
@@ -129,13 +179,7 @@ def train_and_save_model(df):
         preprocessor = build_preprocessor()
 
         # Baseline model
-        baseline_model = build_model()
-
-        baseline_pipeline = Pipeline([
-            ("preprocessor", preprocessor),
-            ("classifier", baseline_model),
-        ])
-
+        baseline_pipeline = build_baseline_pipeline(preprocessor)
         baseline_pipeline.fit(x_train, y_train)
         logger.info("Baseline neural network model trained successfully.")
 
@@ -148,14 +192,8 @@ def train_and_save_model(df):
 
         # Tuned model
         tuned_pipeline, best_params, best_cv_score = tune_model(
-            preprocessor=preprocessor,
-            x_train=x_train,
-            y_train=y_train,
-            random_state=RANDOM_STATE,
+            preprocessor, x_train, y_train
         )
-
-        logger.info(f"Best Parameters: {best_params}")
-        logger.info(f"Best CV Score from GridSearch: {best_cv_score:.4f}")
 
         train_acc, test_acc = evaluate_model(
             tuned_pipeline, x_train, y_train, x_test, y_test
@@ -188,5 +226,5 @@ def train_and_save_model(df):
         )
 
     except Exception as e:
-        logger.error("Error occurred during training pipeline.", exc_info=True)
+        logger.error("Error occurred during UCLA training pipeline.", exc_info=True)
         raise CustomException(e, sys)
